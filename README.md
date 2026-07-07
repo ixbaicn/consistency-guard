@@ -38,7 +38,15 @@ git clone https://github.com/ixbaicn/consistency-guard.git $env:USERPROFILE\.cod
 
 ## 使用
 
-在 Codex 里直接要求使用这个 skill：
+不需要先读懂 `SKILL.md`。那是给 AI Agent 执行用的协议文档，普通用户直接用下面的提示词就够了。
+
+最短用法：
+
+```text
+用 consistency-guard 检查这次改动有没有跨层不一致。
+```
+
+更明确一点：
 
 ```text
 Use $consistency-guard to review this change for schema/API/type drift and missing verification.
@@ -48,6 +56,39 @@ Use $consistency-guard to review this change for schema/API/type drift and missi
 
 ```text
 使用 consistency-guard 检查这次改动有没有数据库、接口、前端类型、缓存和文档不一致的问题。
+```
+
+## 什么时候该叫它
+
+看到这些情况，就适合用：
+
+- 改了数据库字段、枚举、索引、迁移脚本。
+- 改了接口入参、返回值、错误码、OpenAPI、GraphQL、gRPC、SDK。
+- 改了权限、支付、钱包、提现、审计、上传、限流、验证码。
+- 后端类型、DTO、validator、前端表单、表格列、缓存 key 有一处发生变化。
+- AI 已经改完代码，但你不确定有没有漏掉测试、文档、生成文件或兼容版本。
+- PR 看起来能跑，但你担心“某一层没跟着改”。
+
+不太需要用的情况：
+
+- 只改文案、样式、图片、纯展示布局。
+- 只修一个没有上下游契约的小 bug。
+- 只想让 AI 快速写一段局部代码，不需要一致性审查。
+
+## 怎么跟它配合
+
+给 AI 的信息越具体，它越能少打断你：
+
+- 说明你改了什么：字段、接口、权限、缓存还是业务规则。
+- 贴出相关 diff、错误日志、schema、接口文档或 PR 链接。
+- 告诉它哪个文件是权威来源，例如 Prisma schema、Drizzle schema、OpenAPI 文件或后端 DTO。
+- 如果涉及高风险领域，明确是否允许修改，或者只让它先做 review。
+- 要求它最后给出“必须改、建议改、不确定需要人决策”的分组。
+
+推荐提示词：
+
+```text
+用 consistency-guard 审查当前 diff。请先找 source of truth，再列出 schema、API、类型、缓存、测试、文档是否有漂移。不要直接改高风险权限逻辑，先给我决策点。
 ```
 
 ## 它会要求 AI 输出什么
@@ -95,6 +136,32 @@ Use $consistency-guard before editing this API contract.
 ```text
 这个变更涉及支付和权限，请用 consistency-guard 给出风险、验证和回滚计划。
 ```
+
+## FAQ
+
+### 它会自动改代码吗？
+
+取决于你的要求。你可以只让它 review，也可以让它在确认影响范围后修复。涉及权限、支付、审计等高风险域时，它会倾向于先停下来说明风险和需要确认的决策。
+
+### 为什么它有时会问我问题？
+
+因为有些信息不能靠猜，例如字段默认值、权限语义、兼容策略、缓存 TTL、历史数据迁移方式。它问问题通常是为了避免 AI 自己编业务规则。
+
+### 英文 `SKILL.md` 要读吗？
+
+一般不用。`SKILL.md` 是给 AI 执行的细则，用户看 README 和提示词就够了。需要深度定制项目规则时，再看 `references/project-adapters.md`。
+
+### 它适合所有项目吗？
+
+适合大多数有跨层契约的项目。项目越复杂、层越多、权限和数据越敏感，它越有价值。非常小的静态页面或纯样式修改，用它会显得太重。
+
+## 避坑指南
+
+- 不要只说“检查一下”，尽量说清楚你担心哪类漂移。
+- 不要把生成文件当权威来源，除非项目明确这么规定。
+- 不要要求它跳过验证后仍然给“完全一致”的结论。
+- 不要让它替你决定业务语义，例如默认值、权限范围、历史数据处理方式。
+- 不要在支付、权限、钱包、审计等区域让 AI 静默修改。
 
 ## 设计原则
 

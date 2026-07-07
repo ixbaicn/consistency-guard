@@ -1,4 +1,4 @@
 interface:
   display_name: "Consistency Guard"
-  short_description: "Prevents drift with evidence, rollback, and risk gates."
-  default_prompt: "Use $consistency-guard to review this change for contract drift, capability limits, protected-domain risk, migration safety, evidence, rollback, and exit criteria."
+  short_description: "检查全栈改动的契约漂移、风险、验证和回滚。"
+  default_prompt: "用 $consistency-guard 审查这次改动，检查 schema、API、类型、缓存、测试、文档是否有漂移，并给出风险、验证、人工决策点和回滚计划。"
