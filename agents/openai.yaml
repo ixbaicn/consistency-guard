@@ -1,0 +1,4 @@
+interface:
+  display_name: "Consistency Guard"
+  short_description: "Prevents drift with evidence, rollback, and risk gates."
+  default_prompt: "Use $consistency-guard to review this change for contract drift, capability limits, protected-domain risk, migration safety, evidence, rollback, and exit criteria."
