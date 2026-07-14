@@ -147,3 +147,5 @@ Status rules:
 - `blocked`: a protected-domain approval, behavior-changing decision, adapter capability, authority conflict, failed required verification, or unmet required exit criterion prevents the requested action from safely continuing.
 
 Do not use `blocked` merely because optional verification could not run, confidence is lower than ideal, or a low-risk question remains. Use `partial_with_risk` with a manual checklist and batched follow-up questions.
+
+In strict mode, P0/P1 unsupported verification, weak authority, unresolved behavior-changing decisions, and high-risk approval gaps should become blocking release-gate findings.

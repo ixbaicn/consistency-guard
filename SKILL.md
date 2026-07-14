@@ -59,6 +59,21 @@ Follow this sequence for every relevant task:
 19. Exit Criteria: evaluate no known drift, verification status, protected-domain status, confidence threshold, rollback plan, and documented remaining risk.
 20. Final Report: return consistent, blocked, or partial_with_risk.
 
+## Operating Modes
+
+Default mode is pragmatic review: do one useful pass, continue through low-risk uncertainty with explicit assumptions, and batch questions at the end.
+
+Activate strict mode only when the user explicitly asks for `strict mode`, `严格模式`, `高风险审计`, `合规审计`, `release gate`, or `blocking review`.
+
+Strict mode changes behavior by:
+
+- Treating weak source-of-truth confidence as blocking before edits.
+- Requiring decisions before assuming defaults, nullability, enum values, compatibility, cache lifecycle, migration, or rollback semantics.
+- Escalating unsupported verification on P0/P1 changes to blocked instead of partial_with_risk.
+- Emitting more complete checklists and reading `references/report-format.md` when structured reporting is useful.
+
+Even in default mode, never execute protected-domain writes, destructive migrations, financial flows, permission changes, locks, queues, webhooks, production-data changes, or behavior-changing edits without approval and rollback.
+
 ## State Gates
 
 Use state names only when they clarify a blocked or high-risk workflow; do not dump the full state machine in routine answers.

@@ -1,4 +1,4 @@
 interface:
   display_name: "Consistency Guard"
   short_description: "检查全栈改动的契约漂移、风险、验证和回滚。"
-  default_prompt: "用 $consistency-guard 检查当前改动有没有漏改上下游。请用新手能看懂的话输出：结论、必须处理的问题、可以先不管的问题、需要我决定的问题。"
+  default_prompt: "用 $consistency-guard 检查当前改动有没有漏改上下游。默认模式下低风险不确定项先做临时假设继续审查，最后集中列出需要我决定的问题；请用新手能看懂的话输出结论、必须处理、可以先不管、需要我决定。"
