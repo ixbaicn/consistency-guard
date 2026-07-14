@@ -13,6 +13,7 @@ Source of truth: artifact + evidence
 Must fix now: P0/P1 findings with evidence
 Can defer: P2/P3 findings with risk
 Need decision/approval: missing semantics or protected-domain changes
+Assumptions used: provisional low-risk assumptions made to keep work moving
 Verification: commands run, not run, failed, or manual checks
 Rollback: files and restore method for edits
 ```
@@ -85,6 +86,11 @@ consistency_report:
         restore_method: ""
         verification: []
   human_decisions_needed: []
+  assumptions_used:
+    - assumption: ""
+      scope: ""
+      risk: "low | medium | high"
+      can_continue: true
   checklist:
     - item: ""
       status: "done | pending | not_applicable | blocked"

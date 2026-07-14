@@ -144,4 +144,6 @@ Status rules:
 
 - `consistent`: all exit criteria true.
 - `partial_with_risk`: work is useful but some non-blocking checks are manual, pending, or lower-confidence, with risks documented.
-- `blocked`: protected-domain approval, missing decision, missing adapter capability, authority conflict, failed verification, or required exit criterion is not satisfied.
+- `blocked`: a protected-domain approval, behavior-changing decision, adapter capability, authority conflict, failed required verification, or unmet required exit criterion prevents the requested action from safely continuing.
+
+Do not use `blocked` merely because optional verification could not run, confidence is lower than ideal, or a low-risk question remains. Use `partial_with_risk` with a manual checklist and batched follow-up questions.

@@ -37,7 +37,7 @@ Security drift involving authorization bypass, sensitive field exposure, tenant 
 
 ## Human Decision Points
 
-Enter NEED_HUMAN_DECISION when any required semantic choice is missing:
+Enter `NEED_HUMAN_DECISION` only when a missing semantic choice blocks safe review or execution. For low-risk ambiguity, continue with an explicit assumption and add the item to `human_decisions_needed` without blocking.
 
 ```yaml
 missing_decisions:
@@ -66,12 +66,27 @@ Decision output:
 human_decision_needed:
   contract: ""
   missing_decision: ""
+  blocking: false
+  assumed_for_now: ""
   options_if_obvious: []
   risk_of_guessing: ""
   blocked_artifacts: []
 ```
 
-Do not invent the answer even if one option appears common.
+Do not invent business semantics. If a temporary assumption is needed to keep a low-risk review moving, mark it as provisional and do not execute behavior-changing edits that depend on it.
+
+Blocking decision examples:
+
+- Default value, nullability, enum, permission, lifecycle, or compatibility choice affects runtime behavior.
+- Cache TTL or invalidation choice can expose stale or cross-user data.
+- Migration, backfill, rollback, transaction isolation, row lock, or idempotency choice affects persisted data.
+- External client support or protected-domain approval is required before a breaking change.
+
+Non-blocking decision examples:
+
+- Documentation wording needs product confirmation.
+- Test naming or placement is uncertain but the expected behavior is already evidenced.
+- There is one plausible source of truth and the task is review-only.
 
 ## Drift Detection Checklist
 
@@ -121,7 +136,7 @@ Recovery rules:
 
 - Prefer the smallest graph-complete fix.
 - Do not expand into unrelated refactors.
-- If the fix requires semantic choice, stop at NEED_HUMAN_DECISION.
-- If the fix touches a protected domain, stop at NEED_APPROVAL unless explicit approval and adequate verification exist.
-- If confidence is below 0.80, require human review.
+- If the fix requires behavior-changing semantic choice, stop at NEED_HUMAN_DECISION.
+- If the fix would modify a protected domain, stop at NEED_APPROVAL unless explicit approval and adequate verification exist.
+- If confidence is below 0.80, mark human review required; block only when executing the fix would be unsafe.
 - If adapter capability is missing, mark not_supported instead of failed.

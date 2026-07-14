@@ -31,7 +31,7 @@ Require these invariants:
 - Derive confidence from cited evidence only; do not report confidence without evidence.
 - Provide rollback plan for any file, schema, cache, generated artifact, or config modification.
 - State exit criteria before final status and prove each criterion with evidence or mark it unmet.
-- Stop for missing business decisions instead of inventing semantics.
+- Continue with explicit assumptions for low-risk ambiguity; stop only for blocking business decisions, protected-domain writes, destructive changes, or unsafe execution.
 - Never claim consistency when verification is skipped, unsupported, or failed.
 
 ## Workflow
@@ -54,7 +54,7 @@ Follow this sequence for every relevant task:
 14. Drift Detection: compare connected nodes and contract groups for structural, semantic, compatibility, security, and documentation drift.
 15. Risk Scoring: quantify findings and repairs by priority, category, confidence, blast radius, and reversibility.
 16. Repair Plan: include execution, verification, rollback, evidence, confidence, and blocked reasons.
-17. Decision Gate: enter NEED_HUMAN_DECISION, NEED_HUMAN_REVIEW, or NEED_APPROVAL when information, confidence, capability, or protected-domain authorization is insufficient.
+17. Decision Gate: continue with documented assumptions for low-risk ambiguity; enter NEED_HUMAN_DECISION, NEED_HUMAN_REVIEW, or NEED_APPROVAL only when the missing information blocks safe review or execution.
 18. Verification Checklist: produce and complete a checklist for the change type, or a manual checklist when commands cannot run.
 19. Exit Criteria: evaluate no known drift, verification status, protected-domain status, confidence threshold, rollback plan, and documented remaining risk.
 20. Final Report: return consistent, blocked, or partial_with_risk.
@@ -67,11 +67,11 @@ Allowed completion states:
 
 - `consistent`: no known drift remains and exit criteria are evidenced.
 - `partial_with_risk`: useful work completed, but manual checks, unsupported verification, or lower-confidence items remain.
-- `blocked`: required decision, approval, authority resolution, adapter capability, or verification is missing.
+- `blocked`: a required decision, approval, authority resolution, adapter capability, or failed verification prevents safe progress on the requested action.
 
 Interrupt states:
 
-- `NEED_HUMAN_DECISION`: missing business or compatibility semantics.
+- `NEED_HUMAN_DECISION`: missing business or compatibility semantics that would change behavior, data, permissions, migration, cache lifecycle, or external contracts.
 - `NEED_HUMAN_REVIEW`: confidence is below threshold or evidence is weak.
 - `NEED_APPROVAL`: protected domain, financial flow, destructive migration, transaction, queue, webhook, or security boundary is touched.
 - `CAPABILITY_UNSUPPORTED`: the current agent cannot inspect, execute, parse, or verify a required step.
@@ -79,6 +79,26 @@ Interrupt states:
 - `VERIFICATION_FAILED`: required automated or manual verification failed.
 
 Do not allow execution without capability negotiation, project profile check, graph-derived impact view, non-goals, protected-domain scan, migration classification, risk score, evidence, and rollback plan when edits are planned. Do not return `consistent` with unresolved checklist items, unsupported verification treated as passed, active drift findings, blocked protected domains, missing rollback plan, unproven exit criteria, or confidence below threshold.
+
+## Interruption Policy
+
+Do not stop immediately for every uncertainty. Prefer one pass of useful work, then batch questions.
+
+Continue and record assumptions when:
+
+- The issue is P2/P3, documentation-only, test-only, naming-only, or low-blast-radius.
+- The agent can review impact without choosing business semantics.
+- Verification cannot run but a manual checklist is enough for the current request.
+- Source-of-truth confidence is weaker than ideal but there is only one plausible candidate and no write will be executed.
+
+Stop or request approval when:
+
+- The next action would modify protected domains, permissions, financial flows, destructive migrations, transactions, locks, queues, webhooks, or production data.
+- A missing default, nullability, enum, permission, compatibility, cache TTL, backfill, or rollback decision changes runtime behavior.
+- Multiple authority candidates conflict and choosing one would decide product or data semantics.
+- The user asked for execution, but verification or rollback requirements for a P0/P1 change are unavailable.
+
+When stopping, ask only the smallest set of questions needed to unblock the next safe step. Do not ask separate questions one at a time when they can be batched.
 
 ## Output Protocol
 
@@ -93,6 +113,7 @@ Source of truth: artifact + evidence
 Must fix now: P0/P1 findings with evidence
 Can defer: P2/P3 findings with risk
 Need decision/approval: missing semantics or protected-domain changes
+Assumptions used: low-risk assumptions made to keep work moving
 Verification: commands run, not run, failed, or manual checks
 Rollback: files and restore method for edits
 ```

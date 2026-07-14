@@ -33,11 +33,13 @@ Priority meanings:
 
 Status rules:
 
-- `blocked`: cannot continue without project decision, adapter support, tests, transaction semantics, or approval.
+- `blocked`: cannot safely perform the user-requested action without project decision, adapter support, required verification, transaction semantics, or approval.
 - `needs_approval`: can be understood, but touches protected domain or high-risk operation.
 - `not_supported`: current adapters cannot verify safety.
 - `pending`: safe enough to plan but not yet executed.
 - `done`: repaired and verified.
+
+Missing tests or adapter support do not automatically block review-only work. They block execution only when the change is P0/P1 or the requested action requires proof before modification.
 
 ## Protected Domains
 
@@ -115,7 +117,8 @@ Detection signals:
 Protected-domain rule:
 
 ```text
-Protected Domain -> NEED_APPROVAL unless the user explicitly approved the scope and the project has adapters/tests sufficient to verify the change.
+Protected Domain write/behavior change -> NEED_APPROVAL unless the user explicitly approved the scope and the project has adapters/tests sufficient to verify the change.
+Protected Domain review-only analysis -> continue, report approval needed before edits.
 ```
 
 Blocked protected-domain repairs must record why:
@@ -158,7 +161,7 @@ Readonly auto-approval candidates:
 
 These are only auto-approved when they do not touch protected-domain semantics and do not change permissions, visibility, cache invalidation, or external contracts.
 
-Human approval triggers:
+Human approval triggers for execution:
 
 - `INSERT`
 - `UPDATE`
@@ -195,7 +198,7 @@ transaction_levels:
     default_risk: "critical"
 ```
 
-If `BEGIN`, `FOR UPDATE`, row locks, idempotency, compensation, or balance mutation is present, do not auto-repair. Enter NEED_APPROVAL or blocked with required transaction details.
+If `BEGIN`, `FOR UPDATE`, row locks, idempotency, compensation, or balance mutation is present, do not auto-repair. Mark the item `needs_approval`; use `blocked` only when the user asked to execute and the required transaction details are missing.
 
 ## Risk Scoring
 
@@ -253,7 +256,7 @@ confidence:
       reason: "Referenced columns exist in schema."
 ```
 
-If evidence is missing, confidence is invalid and the item requires human review.
+If evidence is missing, confidence is invalid and the item requires human review. Continue review-only analysis when possible; block execution only when the low-confidence item affects a P0/P1 repair or behavior-changing edit.
 
 Examples:
 
@@ -287,4 +290,4 @@ Use this lifecycle for every repair:
 Plan -> Execute -> Verify -> Rollback Ready -> Exit Criteria
 ```
 
-Do not execute without a rollback plan. If the agent cannot execute or verify, emit a manual execution or verification checklist and keep status pending, partial_with_risk, or blocked as appropriate.
+Do not execute without a rollback plan. If the agent cannot execute or verify, emit a manual execution or verification checklist and keep status pending or partial_with_risk for review/planning tasks. Use blocked only when the requested execution cannot safely continue.

@@ -131,7 +131,7 @@ Use this resolution order:
 4. Import and generation edges in the Consistency Graph.
 5. Human project decision.
 
-If multiple artifacts claim authority and cannot be reconciled using project conventions or explicit documentation, stop:
+If multiple artifacts claim authority and choosing one would affect behavior, persistence, permissions, compatibility, generated clients, or external contracts, stop:
 
 ```yaml
 state: "NEED_HUMAN_DECISION"
@@ -143,7 +143,7 @@ authority_candidates:
 required_project_decision: "Choose the authoritative source of truth for this contract."
 ```
 
-This is not a soft warning. Do not continue by choosing the most convenient artifact.
+This is not a soft warning for behavior-changing work. For review-only or low-risk documentation tasks, continue with an explicit provisional assumption and report that authority must be confirmed before edits.
 
 Example project declaration:
 
@@ -165,7 +165,7 @@ Conflict rule:
 ```text
 Higher-priority artifact wins.
 Lower-priority artifact is drift.
-If priority is absent or confidence is below threshold, enter NEED_HUMAN_DECISION.
+If priority is absent or confidence is below threshold, enter NEED_HUMAN_DECISION only when the next action depends on choosing authority. Otherwise continue review with a provisional source-of-truth assumption and lower confidence.
 ```
 
 Common priority patterns:
