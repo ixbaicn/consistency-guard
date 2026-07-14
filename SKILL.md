@@ -1,6 +1,6 @@
 ---
 name: consistency-guard
-description: Guard full-stack consistency and risk-aware repair across database schemas, migrations, backend models, repositories, services, DTOs, validators, API contracts, SDKs, frontend types, forms, tables, caches, tests, documentation, and protected business domains. Use when modifying or reviewing changes that affect data shape, API contracts, business rules, validation, permissions, persistence, cache structures, compatibility, generated clients, migrations, raw SQL, transactions, security-sensitive domains, financial flows, project adapters, rollback plans, or cross-layer behavior in any language, framework, database, or agent runtime.
+description: Guard cross-layer consistency and risk-aware repair across schemas, migrations, backend models, DTOs, validators, API contracts, SDKs, frontend types, forms, caches, tests, docs, and protected domains. Use when modifying or reviewing data shape, API contracts, business rules, permissions, persistence, generated clients, raw SQL, transactions, financial flows, rollback plans, or any change that may drift across application layers.
 ---
 
 # Consistency Guard
@@ -59,152 +59,45 @@ Follow this sequence for every relevant task:
 19. Exit Criteria: evaluate no known drift, verification status, protected-domain status, confidence threshold, rollback plan, and documented remaining risk.
 20. Final Report: return consistent, blocked, or partial_with_risk.
 
-## State Machine
+## State Gates
 
-Use these states:
+Use state names only when they clarify a blocked or high-risk workflow; do not dump the full state machine in routine answers.
 
-```text
-IDLE
-CAPABILITY_NEGOTIATION
-INTAKE
-PROJECT_PROFILE_LOADED
-ARTIFACT_DISCOVERY
-ARTIFACT_CLASSIFICATION
-ARTIFACT_REGISTRY_BUILT
-SOURCE_OF_TRUTH_DISCOVERY
-CONTRACT_PRIORITY_RESOLUTION
-CONSISTENCY_GRAPH_BUILT
-CHANGE_IMPACT_VIEW_BUILT
-NON_GOALS_DECLARED
-PROTECTED_DOMAIN_SCAN_COMPLETE
-MIGRATION_CLASSIFIED
-DRIFT_SCAN_COMPLETE
-RISK_SCORED
-REPAIR_PLAN_CREATED
-CHECKLIST_CREATED
-EXECUTION_ALLOWED
-VERIFICATION_RUNNING
-EXIT_CRITERIA_CHECKED
-RECOVERY_IF_NEEDED
-CONSISTENT_DONE
-```
+Allowed completion states:
+
+- `consistent`: no known drift remains and exit criteria are evidenced.
+- `partial_with_risk`: useful work completed, but manual checks, unsupported verification, or lower-confidence items remain.
+- `blocked`: required decision, approval, authority resolution, adapter capability, or verification is missing.
 
 Interrupt states:
 
-```text
-NEED_HUMAN_DECISION
-NEED_HUMAN_REVIEW
-NEED_APPROVAL
-CAPABILITY_UNSUPPORTED
-PROJECT_ADAPTER_MISSING
-SOURCE_OF_TRUTH_AMBIGUOUS
-CONTRACT_PRIORITY_MISSING
-CONTRACT_CONFLICT
-ADAPTER_CAPABILITY_MISSING
-VERIFICATION_FAILED
-```
+- `NEED_HUMAN_DECISION`: missing business or compatibility semantics.
+- `NEED_HUMAN_REVIEW`: confidence is below threshold or evidence is weak.
+- `NEED_APPROVAL`: protected domain, financial flow, destructive migration, transaction, queue, webhook, or security boundary is touched.
+- `CAPABILITY_UNSUPPORTED`: the current agent cannot inspect, execute, parse, or verify a required step.
+- `SOURCE_OF_TRUTH_AMBIGUOUS` or `CONTRACT_CONFLICT`: authority cannot be resolved from project evidence.
+- `VERIFICATION_FAILED`: required automated or manual verification failed.
 
-Do not move to EXECUTION_ALLOWED without capability negotiation, project profile check, graph-derived impact view, non-goals, protected-domain scan, migration classification, risk score, evidence, and rollback plan when edits are planned. Do not move to CONSISTENT_DONE with unresolved checklist items, unsupported verification treated as passed, active drift findings, blocked protected domains, missing rollback plan, unproven exit criteria, or confidence below threshold.
+Do not allow execution without capability negotiation, project profile check, graph-derived impact view, non-goals, protected-domain scan, migration classification, risk score, evidence, and rollback plan when edits are planned. Do not return `consistent` with unresolved checklist items, unsupported verification treated as passed, active drift findings, blocked protected domains, missing rollback plan, unproven exit criteria, or confidence below threshold.
 
 ## Output Protocol
 
-Return this structure when reviewing or executing consistency-sensitive work:
+Default to a concise human-readable report unless the user requests YAML/JSON, a tool needs structured output, or the task is a high-risk audit.
 
-```yaml
-consistency_report:
-  final_status: "consistent | blocked | partial_with_risk"
-  capabilities:
-    can_read_files: true
-    can_edit_files: true
-    can_read_git_diff: false
-    can_execute_commands: false
-    can_run_tests: false
-    can_execute_sql: false
-    parsers: []
-    verification_mode: "automated | manual | mixed | unsupported"
-  project_profile:
-    adapter: ""
-    orm: ""
-    api: ""
-    frontend: ""
-    database: ""
-    migration: ""
-    contract: ""
-    shared_types: false
-    rule_overrides: {}
-  non_goals: []
-  artifact_registry_summary: []
-  source_of_truth:
-    artifact: ""
-    confidence: 0.0
-    evidence: []
-    priority_basis: ""
-  consistency_graph:
-    changed_nodes: []
-    affected_nodes: []
-  drift_findings:
-    - category: "schema | api | type | semantic | business | cache | performance | compatibility | security | documentation"
-      severity: "blocker | high | medium | low"
-      confidence: 0.0
-      artifact: ""
-      issue: ""
-      evidence: []
-      required_action: ""
-  risk_summary:
-    total_findings: 0
-    by_priority:
-      P0: 0
-      P1: 0
-      P2: 0
-      P3: 0
-    by_category: {}
-  repair_queue:
-    - item: ""
-      priority: "P0 | P1 | P2 | P3"
-      status: "done | pending | blocked | needs_approval | not_supported"
-      risk_level: "critical | high | medium | low"
-      confidence: 0.0
-      migration_classification: ""
-      protected_domain: ""
-      reason: ""
-      requires: []
-      evidence: []
-      rollback:
-        files: []
-        restore_method: ""
-        verification: []
-  human_decisions_needed: []
-  checklist:
-    - item: ""
-      status: "done | pending | not_applicable | blocked"
-  verification:
-    commands_run: []
-    passed: []
-    failed: []
-    not_run: []
-    not_supported: []
-    manual_checklist: []
-  recovery_strategy:
-    minimal_fix: []
-    risk: "low | medium | high"
-    confidence: 0.0
-    evidence: []
-    can_continue: true
-  rollback_plan:
-    files: []
-    restore_method: ""
-    verification: []
-  exit_criteria:
-    no_known_drift: false
-    verification_passed: false
-    protected_domain_modified: false
-    confidence_above_threshold: false
-    remaining_risks_documented: false
-    rollback_plan_ready: false
-  technical_debt:
-    by_kind: {}
-    total: 0
+Default report:
+
+```text
+Status: consistent | blocked | partial_with_risk
+Scope: changed contract and non-goals
+Source of truth: artifact + evidence
+Must fix now: P0/P1 findings with evidence
+Can defer: P2/P3 findings with risk
+Need decision/approval: missing semantics or protected-domain changes
+Verification: commands run, not run, failed, or manual checks
+Rollback: files and restore method for edits
 ```
+
+Use the full machine-readable schema in `references/report-format.md` only when structured output is explicitly useful.
 
 ## Hard Boundaries
 
@@ -238,5 +131,6 @@ Read these files as needed:
 - `references/repair-strategy.md`: protected domains, migration classification, risk scoring, repair queue, confidence, and technical debt reporting.
 - `references/project-adapters.md`: project profile, project adapter contract, rule overrides, verification commands, source priority, generated files, and adapter composition.
 - `references/verification-checklists.md`: checklist templates for database, API, type, business, cache, documentation, and compatibility changes.
+- `references/report-format.md`: full YAML report schema and compact report guidance for structured-output or high-risk audit tasks.
 - `references/adapters-and-extension.md`: language, database, API, frontend, cache, test, documentation adapter capabilities.
 - `references/engineer-lenses.md`: distilled review lenses from relevant senior engineering roles.
